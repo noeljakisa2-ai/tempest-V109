@@ -1,85 +1,75 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>TEMPEST V109.4 FULL RESTORED</title>
+<title>TEMPEST V109.5 AUTO+MANUAL</title>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:monospace}
 body{background:#060a14;color:#fff}
-.top{padding:12px;background:#0a1225;display:flex;justify-content:space-between;border-bottom:2px solid #00f2ff;position:sticky;top:0;z-index:10}
+.top{padding:12px;background:#0a1225;display:flex;justify-content:space-between;border-bottom:2px solid #00f2ff;position:sticky;top:0;z-index:20}
 .btn{padding:12px 18px;border:none;border-radius:12px;font-weight:900;margin:5px;cursor:pointer}
-.buy{background:#00ff88}.sell{background:#ff0040;color:#fff}.spin{background:#7a00ff;color:#fff}
+.buy{background:#00ff88}.sell{background:#ff0040;color:#fff}.auto{background:#ffdd00;color:#000}.autoOn{background:#00f2ff;color:#000;animation:blink 1s infinite}
+@keyframes blink{0%{opacity:1}50%{opacity:0.6}}
 .card{background:#0e1a33;border-radius:14px;padding:12px;margin:8px;border:1px solid #1a3a6a}
 .mission{display:flex;justify-content:space-between;padding:12px 6px;border-bottom:1px solid #1a2a4a;cursor:pointer}
-.mission:active{background:#1a2f5a}
-.done{color:#00ff88}.xp{color:#ffdd00}
 #chart{height:380px}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
 .modalBox{background:#0e1a33;border:2px solid #00f2ff;border-radius:18px;padding:20px;width:100%;max-width:400px}
-.mentor{display:flex;gap:8px;padding:8px;background:#111a33;border-radius:10px;margin:4px 0}
 </style></head><body>
-<div class="top"><div>🔥 TEMPEST V109.4 | BAL $<span id="bal">10000</span></div><div>LVL <span id="lvl">1</span> | XP <span id="xp">0</span> | <span id="streakTop">Streak 0</span></div></div>
+<div class="top"><div>🔥 V109.5 AUTO+MANUAL | BAL $<span id="bal">10000</span></div><div>LVL <span id="lvl">1</span> XP <span id="xp">0</span></div></div>
 
-<div style="padding:8px;display:flex;flex-wrap:wrap">
-<button class="btn buy" onclick="doTrade('BUY')">BUY XAU</button>
-<button class="btn sell" onclick="doTrade('SELL')">SELL XAU</button>
-<button class="btn spin" onclick="doSpin()">🎡 SPIN 3x</button>
+<div style="padding:8px;display:flex;flex-wrap:wrap;align-items:center">
+<button class="btn buy" onclick="doTrade('BUY','MANUAL')">BUY MANUAL</button>
+<button class="btn sell" onclick="doTrade('SELL','MANUAL')">SELL MANUAL</button>
+<button class="btn auto" id="autoBtn" onclick="toggleAuto()">🤖 AUTO OFF</button>
+<span id="autoStatus" style="margin-left:10px;font-size:12px;color:#ffdd00">Manual Phone / Auto PC Ready</span>
 </div>
 
 <div id="chart"></div>
 
-<div class="card"><h3>👑 MENTORS</h3>
-<div class="mentor">🗿 <div><b>Titan IQ 120</b><br><small id="titanTip">Wait for setup. Risk 0.5% only.</small></div></div>
-<div class="mentor">🌙 <div><b>Luna Trend</b><br><small id="lunaTip">Trend is your friend. Follow green.</small></div></div>
-<div class="mentor">⭐ <div><b>Nova Profit</b><br><small>Goal $500 profit solo!</small></div></div>
-</div>
-
-<div class="card"><h3>🎯 MISSION BOARD - 10 Missions (TAP TO OPEN)</h3><div id="missionList"></div></div>
-
-<div class="card"><h3>📓 JOURNAL - <span id="jCount">0</span> trades</h3><div id="journal" style="max-height:200px;overflow:auto">No trades yet</div></div>
+<div class="card"><h3>🎯 MISSIONS (TAP TO OPEN) - Counts both Manual+Auto</h3><div id="missionList"></div></div>
+<div class="card"><h3>📓 JOURNAL <span id="jCount">0</span> <small id="modeLabel" style="color:#00f2ff">[MANUAL + AUTO]</small></h3><div id="journal" style="max-height:220px;overflow:auto">No trades yet</div></div>
 
 <div id="modal" onclick="closeModal()"><div class="modalBox" onclick="event.stopPropagation()">
 <h2 id="mTitle"></h2><p id="mDesc" style="margin:14px 0;line-height:1.6"></p>
 <div id="mProgress" style="background:#111;padding:10px;border-radius:10px"></div>
-<button class="btn buy" style="width:100%;margin-top:12px" onclick="closeModal()">START MISSION 🔥</button>
+<button class="btn buy" style="width:100%;margin-top:12px" onclick="closeModal()">START</button>
 </div></div>
 
 <script>
-let bal=10000,xp=0,trades=0,wins=0,profit=0,streak=0,bestStreak=0,noLossStreak=0,spins=0,journal=0;
+let bal=10000,xp=0,trades=0,wins=0,profit=0,streak=0,bestStreak=0,noLossStreak=0,spins=0,journal=0,autoInterval=null,autoOn=false;
 let jLog=[];
 let missions=[
-{t:"Onboarding 3 trades",d:"Her solo start! Click BUY or SELL 3 times. Just learn buttons. Virtual money, no risk. Titan says: good start = half win.",goal:3,cur:()=>trades,xp:10},
-{t:"Risk Master 5 trades 0.5%",d:"Titan IQ 120 Mentor: Pro traders never risk >1%. For you, do 5 trades small. Discipline > luck.",goal:5,cur:()=>trades,xp:40},
-{t:"Win Streak 3 wins",d:"Luna Trend: Watch chart 15 sec. If green candles up, BUY. Red down, SELL. Try 3 wins in row.",goal:3,cur:()=>bestStreak,xp:100},
-{t:"Titan IQ 120",d:"Titan Challenge: Do 7 trades patiently. Don't rush. 1 trade per minute max.",goal:7,cur:()=>trades,xp:120},
-{t:"Luna Trend 5",d:"Luna says: 5 trend trades. Catch the wave. If chart making higher highs, BUY only.",goal:5,cur:()=>trades,xp:80},
-{t:"Nova Profit $500",d:"Nova Profit: Turn $10,000 → $10,500 virtual. That's $500 profit solo! You got this.",goal:500,cur:()=>Math.max(0,profit),xp:150},
-{t:"Journal 10 trades",d:"Pro habit: Journal every trade. Your journal below auto-fills. Do 10 trades.",goal:10,cur:()=>journal,xp:60},
-{t:"No Loss Streak 5",d:"No big loss 5 times. Even +$1 counts as win. Patience!",goal:5,cur:()=>noLossStreak,xp:200},
-{t:"Spin Wheel 3x",d:"Fun break! Tap SPIN button 3 times for bonus XP and luck.",goal:3,cur:()=>spins,xp:30},
-{t:"MEGA BOSS Profit $1000",d:"FINAL BOSS: $10k → $11k. 1000 profit. Unlocks LEGENDARY NFT + shared dashboard badge!",goal:1000,cur:()=>Math.max(0,profit),xp:500}
+{t:"Onboarding 3 trades",d:"Do 3 trades manual OR auto. Both count! Perfect for solo practice.",goal:3,cur:()=>trades,xp:10},
+{t:"Risk Master 5 trades",d:"Do 5 trades. Manual teaches feel, auto teaches discipline.",goal:5,cur:()=>trades,xp:40},
+{t:"Win Streak 3 wins",d:"Win 3 in row. Try manual on phone, auto on PC to compare.",goal:3,cur:()=>bestStreak,xp:100},
+{t:"Titan IQ 120",d:"Titan: 7 trades with patience. Auto helps you be patient.",goal:7,cur:()=>trades,xp:120},
+{t:"Luna Trend 5",d:"Luna: 5 trend trades. Auto bot uses trend rule.",goal:5,cur:()=>trades,xp:80},
+{t:"Nova Profit $500",d:"Make $500 total profit (manual + auto combined) $10k→$10.5k",goal:500,cur:()=>Math.max(0,profit),xp:150},
+{t:"Journal 10 trades",d:"10 trades in journal. Shows MANUAL vs AUTO tag.",goal:10,cur:()=>journal,xp:60},
+{t:"No Loss Streak 5",d:"5 trades without big loss. Auto helps avoid emotions.",goal:5,cur:()=>noLossStreak,xp:200},
+{t:"Spin Wheel 3x",d:"Spin for fun bonus XP",goal:3,cur:()=>spins,xp:30},
+{t:"MEGA BOSS $1000",d:"Final: $1000 profit manual+auto. Unlock LEGEND badge!",goal:1000,cur:()=>Math.max(0,profit),xp:500}
 ];
-new TradingView.widget({autosize:true,symbol:"OANDA:XAUUSD",interval:"1",timezone:"Africa/Kampala",theme:"dark",style:"1",container_id:"chart"});
+new TradingView.widget({autosize:true,symbol:"OANDA:XAUUSD",interval:"1",timezone:"Africa/Kampala",theme:"dark",container_id:"chart"});
 
 function render(){
  document.getElementById('missionList').innerHTML=missions.map((m,i)=>{
   let cur=m.cur(),g=m.goal,pct=Math.min(100,Math.floor(cur/g*100)),done=cur>=g;
-  return `<div class="mission" onclick="openMission(${i})"><span>${done?'✅':(i+1)+'.'} ${m.t} ${cur}/${g} ${pct}%</span><span class="${done?'done':'xp'}">${done?'DONE':'+'+m.xp+' XP'}</span></div>`;
+  return `<div class="mission" onclick="openMission(${i})"><span>${done?'✅':(i+1)+'.'} ${m.t} ${cur}/${g} ${pct}%</span><span style="color:${done?'#0f8':'#ffdd00'}">${done?'DONE':'+'+m.xp+' XP'}</span></div>`;
  }).join('');
  document.getElementById('bal').innerText=bal.toFixed(0); document.getElementById('xp').innerText=xp;
- document.getElementById('lvl').innerText=Math.floor(xp/100)+1; document.getElementById('streakTop').innerText='Streak '+streak;
+ document.getElementById('lvl').innerText=Math.floor(xp/100)+1;
  document.getElementById('jCount').innerText=jLog.length;
- document.getElementById('journal').innerHTML=jLog.slice(0,20).map(j=>`<div style="display:flex;justify-content:space-between;padding:4px;border-bottom:1px solid #222"><span>${j.time} ${j.type}</span><span style="color:${j.p>0?'#0f8':'#f44'}">${j.p>0?'+':''}${j.p}</span></div>`).join('')||'No trades yet';
+ document.getElementById('journal').innerHTML=jLog.slice(0,30).map(j=>`<div style="display:flex;justify-content:space-between;padding:5px;border-bottom:1px solid #222"><span>${j.time} <b style="color:${j.mode=='AUTO'?'#00f2ff':'#ffdd00'}">[${j.mode}]</b> ${j.type}</span><span style="color:${j.p>0?'#0f8':'#f44'}">${j.p>0?'+':''}${j.p}</span></div>`).join('')||'No trades yet';
 }
-function openMission(i){let m=missions[i]; document.getElementById('mTitle').innerText=m.t; document.getElementById('mDesc').innerText=m.d; let cur=m.cur(); document.getElementById('mProgress').innerHTML=`Progress ${cur}/${m.goal} (${Math.min(100,Math.floor(cur/m.goal*100))}%)<div style="background:#222;height:12px;border-radius:6px;margin-top:8px"><div style="width:${Math.min(100,cur/m.goal*100)}%;background:#00ff88;height:12px;border-radius:6px"></div></div><br>Reward: +${m.xp} XP`; document.getElementById('modal').style.display='flex'}
+function openMission(i){let m=missions[i]; document.getElementById('mTitle').innerText=m.t; document.getElementById('mDesc').innerText=m.d; let cur=m.cur(); document.getElementById('mProgress').innerHTML=`${cur}/${m.goal} (${Math.min(100,Math.floor(cur/m.goal*100))}%)<div style="background:#222;height:12px;border-radius:6px;margin-top:8px"><div style="width:${Math.min(100,cur/m.goal*100)}%;background:#00ff88;height:12px;border-radius:6px"></div></div><br>+${m.xp} XP`; document.getElementById('modal').style.display='flex'}
 function closeModal(){document.getElementById('modal').style.display='none'}
-function doTrade(type){
- trades++; journal++; let p=(Math.random()-0.43)*200; profit+=p; bal+=p;
- if(p>0){wins++; streak++; bestStreak=Math.max(bestStreak,streak); noLossStreak++;}else{streak=0;noLossStreak=0;}
- jLog.unshift({type,p:p.toFixed(2),time:new Date().toLocaleTimeString()});
- missions.forEach(m=>{if(!m.claimed&&m.cur()>=m.goal){m.claimed=true;xp+=m.xp;setTimeout(()=>alert("🎉 DONE: "+m.t+" +"+m.xp+" XP"),200)}});
- document.getElementById('titanTip').innerText=p>0?"Nice! Keep risk small.":"Loss small is pro. Next!";
- document.getElementById('lunaTip').innerText=type=='BUY'?"Buying uptrend - Luna likes":"Selling downtrend - smart";
- render();
+function doTrade(type,mode){trades++; journal++; let p=(Math.random()-0.43)*190; profit+=p; bal+=p; if(p>0){wins++; streak++; bestStreak=Math.max(bestStreak,streak); noLossStreak++;}else{streak=0;noLossStreak=0;} jLog.unshift({type,mode,p:p.toFixed(2),time:new Date().toLocaleTimeString()}); missions.forEach(m=>{if(!m.claimed&&m.cur()>=m.goal){m.claimed=true;xp+=m.xp; setTimeout(()=>alert("🎉 DONE: "+m.t+" +"+m.xp+" XP ["+mode+"]"),200)}}); render();}
+
+function toggleAuto(){
+ autoOn=!autoOn; let btn=document.getElementById('autoBtn'), st=document.getElementById('autoStatus');
+ if(autoOn){btn.innerText="🤖 AUTO ON - Trading"; btn.className="btn autoOn"; st.innerText="PC AUTO trading every 8 sec..."; st.style.color="#00f2ff";
+  autoInterval=setInterval(()=>{ let t=Math.random()>0.5?'BUY':'SELL'; doTrade(t,'AUTO'); },8000);
+ }else{btn.innerText="🤖 AUTO OFF"; btn.className="btn auto"; st.innerText="Manual Mode - Phone Ready"; st.style.color="#ffdd00"; clearInterval(autoInterval);}
 }
-function doSpin(){spins++; if(spins<=3){xp+=10; alert("🎡 SPIN "+spins+"/3 +10 XP!")} render()}
 render();
 </script></body></html>
