@@ -1,152 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEMPEST V109 MEGA ULTIMATE - HER SOLO PRACTICE</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TEMPEST V109.3 MISSIONS LIVE</title>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Orbitron,monospace}
-body{background:#060a14;color:#fff;overflow-x:hidden}
-.top{padding:10px;background:#0a1225;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00f2ff;flex-wrap:wrap;gap:8px}
-.badge{background:linear-gradient(90deg,#00f2ff,#7a00ff);padding:6px 12px;border-radius:20px;font-size:11px;font-weight:900}
-.balance{font-size:14px} .balance span{color:#00ff88}
-.btn{padding:10px 16px;border:none;border-radius:10px;font-weight:900;cursor:pointer;margin:4px}
-.buy{background:#00ff88;color:#000} .sell{background:#ff0040;color:#fff}
-.reset{background:#ffaa00;color:#000} .practice{background:linear-gradient(90deg,#ff00ff,#00f2ff);color:#fff}
-.card{background:#0e1a33;border:1px solid #1e3a6e;border-radius:14px;padding:12px;margin:8px}
-.mission{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2a4a;font-size:12px}
-.xp{color:#ffdd00}
-.mentor{display:inline-block;width:30%;text-align:center;background:#111d3a;border-radius:12px;padding:8px;margin:4px;font-size:11px}
-#chart{height:380px}
-.journal{max-height:150px;overflow:auto;font-size:11px}
-.j-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #222}
-.win{color:#00ff88} .loss{color:#ff0040}
-.tip{position:fixed;bottom:20px;left:10px;right:10px;background:#7a00ff;padding:12px;border-radius:12px;display:none;z-index:999;font-size:13px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:monospace}
+body{background:#060a14;color:#fff}
+.top{padding:10px;background:#0a1225;display:flex;justify-content:space-between;border-bottom:2px solid #00f2ff}
+.btn{padding:12px 18px;border:none;border-radius:12px;font-weight:900;margin:4px;cursor:pointer}
+.buy{background:#00ff88}.sell{background:#ff0040;color:#fff}
+.card{background:#0e1a33;border-radius:14px;padding:12px;margin:8px;border:1px solid #1a3a6a}
+.mission{display:flex;justify-content:space-between;padding:10px 6px;border-bottom:1px solid #1a2a4a;cursor:pointer}
+.mission:active{background:#1a2f5a}
+.done{color:#00ff88}.xp{color:#ffdd00;font-weight:900}
+#modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.modalBox{background:#0e1a33;border:2px solid #00f2ff;border-radius:16px;padding:20px;width:100%;max-width:380px}
+#chart{height:360px}
 </style>
 </head>
 <body>
-
-<div class="top">
-<div class="badge">TEMPEST V109 HER SOLO PRACTICE • 15 SEPT KAMPALA</div>
-<div class="balance">BALANCE: <span id="bal">$10,000.00</span> | LVL <span id="lvl">1</span> | XP <span id="xp">0</span></div>
-</div>
-
-<div style="padding:8px;display:flex;flex-wrap:wrap">
-<button class="btn buy" onclick="trade('BUY')">BUY XAU</button>
-<button class="btn sell" onclick="trade('SELL')">SELL XAU</button>
-<button class="btn reset" onclick="resetBal()">RESET $10K</button>
-<button class="btn practice" onclick="togglePractice()">PRACTICE MODE: ON</button>
-</div>
-
+<div class="top"><div>🔥 V109.3 MISSIONS LIVE | Kampala 10:22 AM</div><div id="balTop">$10,000 LVL <span id="lvl">1</span> XP <span id="xp">0</span></div></div>
+<div style="padding:8px"><button class="btn buy" onclick="doTrade('BUY')">BUY XAU</button><button class="btn sell" onclick="doTrade('SELL')">SELL XAU</button></div>
 <div id="chart"></div>
 
-<div style="display:flex;flex-wrap:wrap">
-<div class="card" style="flex:1;min-width:280px">
-<h3>🎯 MISSION BOARD — 10 Missions</h3>
-<div id="missions"></div>
-</div>
-
-<div class="card" style="flex:1;min-width:280px">
-<h3>🧙 MENTORS</h3>
-<div class="mentor">⚔️ TITAN IQ<br><small>Risk 0.5%</small></div>
-<div class="mentor">🔮 LUNA<br><small>Trend Follow</small></div>
-<div class="mentor">💎 NOVA<br><small>Win Streak</small></div>
-<div style="margin-top:10px">
-<h3>📓 HER TRADE JOURNAL</h3>
-<div id="journal" class="journal">No trades yet — click BUY/SELL to start solo practice!</div>
-</div>
-</div>
-</div>
-
 <div class="card">
-<h3>💎 NFT BADGES | 🏆 LEADERBOARD | 🎰 SPIN <button class="btn practice" style="padding:4px 8px;font-size:10px" onclick="spin()">SPIN</button></h3>
-<div id="badges" style="font-size:12px;margin-top:6px">Locked: First Trade, Risk Master, 3 Wins</div>
-<div id="leader" style="font-size:12px;margin-top:6px">You: LVL 1 — #1 Kampala Solo Trader</div>
+<h3>🎯 MISSION BOARD - 10 Missions (TAP TO OPEN)</h3>
+<div id="missionList"></div>
 </div>
 
-<div id="tip" class="tip"></div>
+<div id="modal" onclick="closeModal()"><div class="modalBox" onclick="event.stopPropagation()">
+<h2 id="mTitle"></h2><p id="mDesc" style="margin:12px 0;line-height:1.5;font-size:13px"></p>
+<div id="mProgress" style="background:#111;padding:8px;border-radius:8px;margin:8px 0"></div>
+<button class="btn buy" style="width:100%" onclick="closeModal()">GOT IT - START MISSION</button>
+</div></div>
 
 <script>
-let bal=10000, xp=0, lvl=1, trades=0, wins=0, missionsDone=0;
-let journal=[];
-const missionsList=[
-"1. Onboarding 3 trades 0/3 +10 XP",
-"2. Risk Master 5 trades 0.5% 0/5 +40 XP",
-"3. Win Streak 3 wins 0/3 +100 XP",
-"4. Titan IQ 120 +120 XP",
-"5. Luna Trend 5 +80 XP",
-"6. Nova Profit $500 +150 XP",
-"7. Journal 10 trades +60 XP",
-"8. No Loss Streak 5 +200 XP",
-"9. Spin Wheel 3x +30 XP",
-"10. MEGA BOSS Profit $1000 +500 XP"
+let xp=0, trades=0, wins=0, profit=0, streak=0, bestStreak=0, noLossStreak=0, spins=0, journal=0;
+let missions=[
+{t:"Onboarding 3 trades",d:"Perfect for her solo start! Just click BUY or SELL 3 times. Learn buttons. No risk, virtual money.",goal:3,cur:()=>trades, xp:10},
+{t:"Risk Master 5 trades 0.5%",d:"Titan IQ Mentor: Keep each trade to 0.5% risk. In practice, just do 5 trades - you're learning risk control.",goal:5,cur:()=>trades, xp:40},
+{t:"Win Streak 3 wins",d:"Luna Mentor: Try to win 3 in a row. Follow trend - if chart going up, BUY. Going down, SELL.",goal:3,cur:()=>bestStreak, xp:100},
+{t:"Titan IQ 120",d:"Titan IQ says: Pro traders never risk more than 1%. Do 7 trades with discipline to unlock.",goal:7,cur:()=>trades, xp:120},
+{t:"Luna Trend 5",d:"Luna: Catch 5 trend trades. Watch chart for 10 sec, then trade WITH the trend.",goal:5,cur:()=>trades, xp:80},
+{t:"Nova Profit $500",d:"Nova: Make $500 virtual profit. Balance goes from $10k to $10.5k. You can do it solo!",goal:500,cur:()=>Math.max(0,profit), xp:150},
+{t:"Journal 10 trades",d:"Every BUY/SELL adds to journal. Do 10 trades to build habit of tracking.",goal:10,cur:()=>journal, xp:60},
+{t:"No Loss Streak 5",d:"Try 5 trades without big loss. Even small wins count. Patience is key!",goal:5,cur:()=>noLossStreak, xp:200},
+{t:"Spin Wheel 3x",d:"Tap SPIN button 3 times for bonus XP. Just for fun & motivation!",goal:3,cur:()=>spins, xp:30},
+{t:"MEGA BOSS Profit $1000",d:"FINAL BOSS: Make $1000 profit total. From $10k to $11k. Unlocks MEGA NFT Badge!",goal:1000,cur:()=>Math.max(0,profit), xp:500}
 ];
 
-function renderMissions(){
- document.getElementById('missions').innerHTML=missionsList.map(m=>`<div class="mission"><span>${m}</span><span class="xp">+XP</span></div>`).join('');
-}
-renderMissions();
+new TradingView.widget({autosize:true,symbol:"OANDA:XAUUSD",interval:"1",timezone:"Africa/Kampala",theme:"dark",container_id:"chart"});
 
-new TradingView.widget({
-"autosize":true,
-"symbol":"OANDA:XAUUSD",
-"interval":"1",
-"timezone":"Africa/Kampala",
-"theme":"dark",
-"style":"1",
-"container_id":"chart"
-});
-
-function showTip(t){
- let el=document.getElementById('tip');
- el.innerText="🧙 MENTOR TIP: "+t;
- el.style.display='block';
- setTimeout(()=>el.style.display='none',4000);
-}
-
-function trade(type){
- trades++;
- let profit=(Math.random()-0.45)*200; // slight edge for practice
- let isWin=profit>0;
- if(isWin){wins++; bal+=profit; xp+=20} else {bal+=profit; xp+=5}
- if(bal<100) bal=100;
- journal.unshift({type, profit:profit.toFixed(2), time:new Date().toLocaleTimeString(), win:isWin});
- if(journal.length>20) journal.pop();
- updateUI();
- if(trades==1) showTip("Great start! For solo practice, always use Stop Loss. Try 3 trades to unlock first NFT!");
- if(trades==3) showTip("Perfect! You finished onboarding. Now try to win 3 in a row — Nova Mentor tip: follow trend!");
- if(isWin && wins>=3) showTip("🔥 WIN STREAK! You're doing amazing solo! Keep journal — it makes you pro!");
- if(!isWin) showTip("Loss is okay — Titan IQ says: keep risk to 0.5% ($50). You will bounce back!");
-}
-
-function updateUI(){
- document.getElementById('bal').innerText="$"+bal.toFixed(2);
+function render(){
+ let html=missions.map((m,i)=>{
+   let cur=m.cur(), g=m.goal, pct=Math.min(100,Math.floor(cur/g*100)), done=cur>=g;
+   return `<div class="mission" onclick="openMission(${i})"><span>${done?'✅':''} ${i+1}. ${m.t} ${cur}/${g} ${pct}%</span><span class="${done?'done':'xp'}">${done?'DONE':'+'+m.xp+' XP'}</span></div>`;
+ }).join('');
+ document.getElementById('missionList').innerHTML=html;
  document.getElementById('xp').innerText=xp;
  document.getElementById('lvl').innerText=Math.floor(xp/100)+1;
- let jHtml=journal.map(j=>`<div class="j-row"><span>${j.time} ${j.type}</span><span class="${j.win?'win':'loss'}">${j.profit>0?'+':''}$${j.profit}</span></div>`).join('');
- document.getElementById('journal').innerHTML=jHtml||"No trades yet";
- if(trades>=3) document.getElementById('badges').innerText="UNLOCKED: 💎 First Trader NFT + 10 XP | Next: Risk Master";
- if(wins>=3) document.getElementById('leader').innerText=`You: LVL ${Math.floor(xp/100)+1} — ${wins} Wins — TOP 1% Kampala Solo!`;
 }
-
-function resetBal(){
- bal=10000; trades=0; wins=0; journal=[]; xp=0;
- updateUI(); showTip("Balance reset to $10,000 — Fresh solo practice start! You got this!");
- document.getElementById('journal').innerHTML="Reset done — start new solo session!";
+function openMission(i){
+ let m=missions[i]; document.getElementById('mTitle').innerText=(i+1)+". "+m.t;
+ document.getElementById('mDesc').innerText=m.d;
+ let cur=m.cur(); document.getElementById('mProgress').innerHTML=`Progress: ${cur}/${m.goal}<br><div style="background:#222;height:10px;border-radius:5px;margin-top:6px"><div style="width:${Math.min(100,cur/m.goal*100)}%;background:#00ff88;height:10px;border-radius:5px"></div></div><br>Reward: +${m.xp} XP`;
+ document.getElementById('modal').style.display='flex';
 }
+function closeModal(){document.getElementById('modal').style.display='none'}
 
-function spin(){
- let prize=["$50 Bonus","10 XP","Free Mentor Call","Lucky $100"][Math.floor(Math.random()*4)];
- xp+=10; updateUI(); showTip("🎰 SPIN WIN: "+prize+" — Keep practicing!");
+function doTrade(type){
+ trades++; journal++;
+ let p=(Math.random()-0.42)*180; profit+=p;
+ if(p>0){wins++; streak++; bestStreak=Math.max(bestStreak,streak); noLossStreak++;} else {streak=0; noLossStreak=0;}
+ // check mission complete
+ missions.forEach(m=>{ if(m.cur()>=m.goal &&!m.claimed){ xp+=m.xp; m.claimed=true; alert("🎉 MISSION COMPLETE: "+m.t+" +"+m.xp+" XP!"); }});
+ render();
 }
-
-function togglePractice(){
- showTip("Practice Mode is ALWAYS ON for her — 100% virtual, safe solo learning! No real money.");
-}
-
-updateUI();
-showTip("Welcome to HER SOLO PRACTICE! Tap BUY/SELL — all virtual $10K, learn alone, become pro!");
+render();
 </script>
 </body>
 </html>
